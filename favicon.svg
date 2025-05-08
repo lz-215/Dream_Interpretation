@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <!-- Moon base -->
+    <path d="M24 16C24 20.4183 20.4183 24 16 24C11.5817 24 8 20.4183 8 16C8 11.5817 11.5817 8 16 8C20.4183 8 24 11.5817 24 16Z" fill="#FF9FB2"/>
+    <!-- Stars -->
+    <circle cx="6" cy="10" r="2" fill="#A5DEE4"/>
+    <circle cx="26" cy="12" r="2" fill="#A5DEE4"/>
+    <circle cx="22" cy="6" r="2" fill="#A5DEE4"/>
+    <!-- Sparkles -->
+    <path d="M4 20L5 19L6 20L5 21L4 20Z" fill="#FBDAC8"/>
+    <path d="M28 22L29 21L30 22L29 23L28 22Z" fill="#FBDAC8"/>
+    <path d="M24 28L25 27L26 28L25 29L24 28Z" fill="#FBDAC8"/>
+</svg>

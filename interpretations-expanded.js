@@ -1,0 +1,214 @@
+// Dream interpretations expanded library
+// Based on dreamknowledge.md content
+
+const dreamInterpretations = {
+  BasicSymbols: {
+    NaturalElements: {
+      Water: {
+        CalmWater: "Symbolizes the unconscious mind, inner peace",
+        TurbulentWater: "Represents emotional turmoil, life changes",
+        DeepWater: "Signifies deep unconscious, unknown fears",
+        ShallowWater: "Indicates surface consciousness, limited perspective",
+        Ice: "Symbolizes frozen emotions, defense mechanisms, suspended state",
+        Rain: "Represents purification, emotional release, renewal"
+      },
+      Fire: {
+        ControlledFire: "Symbolizes creativity, transformative energy",
+        UncontrolledFire: "Represents destructive emotions, life crisis",
+        WarmFlame: "Signifies passion, source of vitality",
+        BurningObjects: "Symbolizes purification, radical change",
+        Volcano: "Represents repressed emotions erupting, uncontrollable power",
+        Candle: "Symbolizes hope, guidance, inner wisdom"
+      },
+      Air_Wind: {
+        Breeze: "Represents flow of thoughts, subtle changes",
+        StrongWind_Storm: "Symbolizes major transitions, emotional turbulence",
+        SuffocationFeeling: "Signifies pressure, restricted expression",
+        FreeBreathing: "Symbolizes relief, sense of freedom",
+        Fog: "Represents confusion, uncertainty, hidden truth",
+        Clouds: "Symbolizes thoughts, impermanence, potential possibilities"
+      },
+      Earth_Ground: {
+        FertileSoil: "Represents growth potential, stable foundation",
+        BarrenLand: "Symbolizes resource scarcity, limited opportunities",
+        GroundCollapsing: "Signifies loss of support, shaken beliefs",
+        SolidGround: "Symbolizes security, stable support",
+        Desert: "Represents spiritual drought, loneliness, testing",
+        Mountains: "Symbolizes challenges, achievement, spiritual pursuit"
+      }
+    },
+    AnimalSymbols: {
+      DomesticAnimals: {
+        Dog: "Symbolizes loyalty, protection, friendship",
+        Cat: "Represents independence, mystery, intuition",
+        Horse: "Symbolizes power, freedom, vitality",
+        Fish: "Represents unconscious, spirituality, adaptability",
+        CagedBird: "Symbolizes restricted freedom, suppressed expression"
+      },
+      WildAnimals: {
+        Wolf: "Symbolizes instinct, independence, pack belonging",
+        Bear: "Represents strength, introspection, protection",
+        Birds: "Symbolizes freedom, perspective, spiritual aspiration",
+        Butterfly: "Represents transformation, transience, beauty",
+        Fox: "Symbolizes cunning, adaptability, wisdom",
+        Eagle: "Represents vision, insight, lofty goals"
+      },
+      Reptiles: {
+        Snake: "Represents transformation, wisdom, renewal",
+        Lizard: "Symbolizes adaptability, primal instincts",
+        Turtle: "Represents longevity, protection, slow progress",
+        Crocodile: "Symbolizes primal fear, potential danger, aggression",
+        Spider: "Represents creativity, patience, feminine energy"
+      }
+    },
+    CharacterTypes: {
+      FamiliarPeople: "Symbolizes aspects of personality, relationship projections",
+      Strangers: "Represents unknown self, potential possibilities",
+      Historical_Celebrities: "Symbolizes collective values, exemplary qualities",
+      AuthorityFigures: "Represents inner authority, superego projections",
+      Children: "Symbolizes innocent self, vulnerability, new possibilities",
+      ElderlyPeople: "Represents wisdom, passage of time, inner guidance",
+      Twins_Doppelgangers: "Symbolizes different aspects of self, duality",
+      Enemies_Opponents: "Represents shadow aspects, unaccepted parts of self",
+      Mentors_Teachers: "Symbolizes inner wisdom, guidance for growth"
+    }
+  },
+  SituationsAndActivities: {
+    ChaseOrBeingChased: "Symbolizes avoiding issues, inner conflict",
+    Falling: "Represents loss of control, status decline, letting go",
+    Flying: "Symbolizes transcending limitations, freedom, perspective shift",
+    HidingOrSeeking: "Represents avoidance and exploration, inner quest",
+    BeingLost: "Symbolizes life direction, identity confusion",
+    ExamOrTest: "Represents self-evaluation, social pressure",
+    Drowning: "Symbolizes overwhelmed emotions, unmanageable situation",
+    Performing_OnStage: "Represents social anxiety, self-presentation",
+    CrossingDoors_Passages: "Symbolizes transition, new phase, consciousness shift",
+    Climbing: "Represents effort, overcoming difficulties, growth process"
+  },
+  ModernTechnologySymbols: {
+    Smartphone: {
+      LostPhone: "Symbolizes lost connection, identity crisis, social anxiety",
+      BrokenScreen: "Represents communication barriers, damaged self-image",
+      DeadBattery: "Symbolizes energy depletion, resource scarcity",
+      CannotConnect: "Represents isolation, inability to express, broken relationships"
+    },
+    Computer_Internet: {
+      SystemCrash: "Symbolizes mental confusion, overwhelming stress",
+      Virus_Hacking: "Represents boundary invasion, privacy concerns, vulnerability",
+      DisconnectedNetwork: "Symbolizes social isolation, missing information",
+      DataLoss: "Represents memory concerns, loss of important content"
+    },
+    SocialMedia: {
+      Likes_Comments: "Symbolizes approval needs, social judgment",
+      HackedAccount: "Represents identity crisis, loss of control",
+      VirtualPersona: "Symbolizes separation between authentic and presented self",
+      InformationOverload: "Represents stress, decision fatigue, scattered attention"
+    },
+    VirtualReality: {
+      ImmersiveExperience: "Symbolizes escape from reality, substitute satisfaction",
+      Reality_VirtualConfusion: "Represents identity confusion, blurred boundaries",
+      CannotExit: "Symbolizes being stuck in patterns, repetitive behavior",
+      TechnicalFailure: "Represents sense of reality collapse, challenged belief systems"
+    }
+  },
+  CultureSpecificSymbols: {
+    WesternCulturalSymbols: {
+      Cross: "Symbolizes faith, sacrifice, redemption",
+      Crown: "Represents power, achievement, responsibility",
+      Apple: "Symbolizes knowledge, temptation, original sin",
+      Labyrinth: "Represents life journey, confusion, exploration",
+      BlackCat: "Symbolizes superstition, mystery, bad omen"
+    },
+    EasternCulturalSymbols: {
+      Dragon: "Symbolizes power, good fortune, authority",
+      RedColor: "Represents celebration, good luck, passion",
+      Bamboo: "Symbolizes resilience, humility, growth",
+      Moon: "Represents yin energy, cycles, reunion",
+      Lotus: "Symbolizes purity, enlightenment, rebirth"
+    }
+  },
+  JungianArchetypes: {
+    Ego: {
+      DreamManifestation: "Protagonist, center of consciousness, current identity",
+      SymbolicObjects: "Self-image, familiar self",
+      Function: "Connects conscious and unconscious, integrates experiences"
+    },
+    Shadow: {
+      DreamManifestation: "Same-sex enemies, dangerous figures, disturbing images",
+      SymbolicObjects: "Dark figures, monsters, rejected persons",
+      Function: "Presents repressed qualities, unaccepted parts of self"
+    },
+    Anima_Animus: {
+      DreamManifestation: "Opposite-sex figures, guides, emotional connections",
+      SymbolicObjects: "Ideal female (for males) or male (for females) figures",
+      Function: "Connects conscious and unconscious, promotes psychic integration"
+    },
+    WiseOldMan_GreatMother: {
+      DreamManifestation: "Mentors, sages, nurturers",
+      SymbolicObjects: "Elderly figures, goddesses, authority figures",
+      Function: "Provides guidance, symbolizes inner wisdom and nourishment"
+    },
+    Self: {
+      DreamManifestation: "Integration symbols, wholeness",
+      SymbolicObjects: "Mandalas, circles, squares, sacred figures",
+      Function: "Represents psychic integration goal, complete self"
+    }
+  },
+  EmotionalAssociations: {
+    Fear_Anxiety: {
+      CommonSymbols: "Darkness, mazes, pursuers, deep water, snakes",
+      TypicalDreams: "Unable to escape, falling, being lost, unprepared",
+      BodySensations: "Suffocation, rapid heartbeat, rigidity, coldness",
+      ModernManifestations: "Forgotten passwords, network disconnection, lost phone, missed important information",
+      PotentialMeaning: "Unprocessed trauma, lack of security, fear of the unknown"
+    },
+    Anger_Frustration: {
+      CommonSymbols: "Fire, destruction scenes, red color, combat, obstacles",
+      TypicalDreams: "Conflict, being prevented, unable to achieve goals",
+      BodySensations: "Heat, tension, pressure, energy accumulation",
+      ModernManifestations: "Technical failures, system crashes, network attacks, virtual arguments",
+      PotentialMeaning: "Violated boundaries, blocked self-expression, power imbalance"
+    },
+    Sadness_Loss: {
+      CommonSymbols: "Rain, gray color, empty houses, fog, withered trees",
+      TypicalDreams: "Losing, searching, unable to reunite, saying goodbye",
+      BodySensations: "Heaviness, sinking, emptiness, numbness",
+      ModernManifestations: "Deleted information, broken connections, lost data, expired accounts",
+      PotentialMeaning: "Unfinished grieving, difficulty adapting to change, low self-worth"
+    },
+    Joy_Satisfaction: {
+      CommonSymbols: "Sunshine, gardens, ascending, bright colors, flying",
+      TypicalDreams: "Celebrating, discovering, achieving, reuniting",
+      BodySensations: "Lightness, warmth, energy abundance, expansion",
+      ModernManifestations: "Perfect connections, technological breakthroughs, virtual achievements, social recognition",
+      PotentialMeaning: "Inner harmony, self-acceptance, creative release"
+    },
+    Confusion_Uncertainty: {
+      CommonSymbols: "Fog, crossroads, mazes, morphing objects, multiple doors",
+      TypicalDreams: "Difficulty choosing, identity ambiguity, changing environments",
+      BodySensations: "Dizziness, weightlessness, instability, blurred vision",
+      ModernManifestations: "Algorithm recommendation chaos, information overload, multiple identities, virtual/reality confusion",
+      PotentialMeaning: "Unclear life direction, value conflicts, role transition period"
+    }
+  },
+  SpecialDreamTypes: {
+    LucidDreams: {
+      Characteristics: "Awareness of dreaming, possible dream control",
+      PsychologicalSignificance: "Enhanced self-awareness, inner exploration",
+      InterpretationFeatures: "Combination of symbolism and direct experience"
+    },
+    RecurringDreams: {
+      Characteristics: "Same or similar themes appearing repeatedly",
+      PsychologicalSignificance: "Unresolved issues, emphasis on important information",
+      InterpretationFeatures: "Focus on persistent themes and subtle changes"
+    },
+    Nightmares: {
+      Characteristics: "Strong negative emotions, awakening",
+      PsychologicalFunction: "Emotional processing, warning function",
+      CopingStrategies: "Reprocessing, imagery rehearsal"
+    }
+  }
+};
+
+// Export the dream interpretations object
+export default dreamInterpretations;

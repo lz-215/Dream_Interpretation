@@ -1,0 +1,614 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <!-- Google tag (gtag.js) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-LSL1FY3NYY"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('js', new Date());
+
+        gtag('config', 'G-LSL1FY3NYY');
+    </script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dream Interpretation-Understand Your Dreams</title>
+    <meta name="description" content="Explore the meanings behind your dreams with our intuitive Dream Interpreter. Enter your dream description and get insights based on common dream symbols.">
+    <meta name="keywords" content="dream interpreter, dream interpretation, dream meanings, dream symbols, analyze dreams, understand dreams">
+    <link rel="icon" type="image/svg+xml" href="favicon.svg">
+    <link rel="alternate icon" href="favicon.ico">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <h1>Dream Interpreter</h1>
+        <div class="dream-form">
+            <div class="input-group">
+                <textarea id="dreamInput" placeholder="Describe your dream in detail..."></textarea>
+            </div>
+            <button onclick="submitDream()"><i class="fas fa-moon"></i>Interpret Dream</button>
+        </div>
+        <div id="results" class="empty-state">
+            <i class="fas fa-cloud-moon"></i>
+            <p>Your dream interpretation will appear here</p>
+        </div>
+    </div>
+
+    <footer class="footer">
+        <p>© <span id="currentYear"></span> Dream Interpreter. All rights reserved. <a href="privacy-policy.html">Privacy Policy</a></p>
+        <p><a href="https://beian.miit.gov.cn/" target="_blank" rel="noopener noreferrer">渝ICP备2024032264号-69</a></p>
+        <p>Contact Us: ytsgabcde15#2925.com, replace # with @ to get the email.</p>
+    </footer>
+
+    <script>
+        // Update copyright year
+        document.getElementById('currentYear').textContent = new Date().getFullYear();
+
+        // Basic and expanded knowledge bases
+        let interpretationsKb = {};
+        let expandedKb = {};
+
+        // Asynchronously load knowledge bases
+        async function loadKnowledgeBases() {
+            try {
+                // Load basic knowledge base
+                const basicResponse = await fetch('interpretations.json');
+                if (basicResponse.ok) {
+                    interpretationsKb = await basicResponse.json();
+                    console.log('Basic knowledge base loaded successfully');
+                } else {
+                    console.error('Failed to load basic interpretations');
+                }
+
+                // Try to load the new expanded knowledge base first
+                try {
+                    const newExpandedResponse = await fetch('interpretations-expanded-new.json');
+                    if (newExpandedResponse.ok) {
+                        expandedKb = await newExpandedResponse.json();
+                        console.log('New expanded knowledge base loaded successfully');
+                    } else {
+                        // Fall back to the original expanded knowledge base
+                        const expandedResponse = await fetch('interpretations-expanded.json');
+                        if (expandedResponse.ok) {
+                            expandedKb = await expandedResponse.json();
+                            console.log('Original expanded knowledge base loaded successfully');
+                        } else {
+                            console.error('Failed to load any expanded interpretations');
+                            // As a last resort, try to load from JS file
+                            try {
+                                const moduleScript = document.createElement('script');
+                                moduleScript.type = 'module';
+                                moduleScript.textContent = `
+                                    import dreamInterpretations from './interpretations-expanded.js';
+                                    window.expandedKb = dreamInterpretations;
+                                    console.log('Expanded knowledge base loaded from JS module');
+                                `;
+                                document.head.appendChild(moduleScript);
+                            } catch (jsError) {
+                                console.error('Failed to load expanded interpretations from JS:', jsError);
+                            }
+                        }
+                    }
+                } catch (newError) {
+                    console.error('Error loading new expanded knowledge base:', newError);
+                    // Fall back to the original expanded knowledge base
+                    try {
+                        const expandedResponse = await fetch('interpretations-expanded.json');
+                        if (expandedResponse.ok) {
+                            expandedKb = await expandedResponse.json();
+                            console.log('Original expanded knowledge base loaded successfully');
+                        } else {
+                            console.error('Failed to load any expanded interpretations');
+                        }
+                    } catch (fallbackError) {
+                        console.error('Error loading fallback expanded knowledge base:', fallbackError);
+                    }
+                }
+
+                console.log('Knowledge base loading completed');
+            } catch (error) {
+                console.error('Error in knowledge base loading process:', error);
+            }
+        }
+
+        // Initialize knowledge bases on page load
+        window.onload = function() {
+            document.getElementById('dreamInput').focus();
+            loadKnowledgeBases();
+        };
+
+        // Deep search expanded knowledge base - improved version
+        function searchExpandedKb(keyword) {
+            const results = [];
+            const keywordLower = keyword.toLowerCase();
+
+            function searchObject(obj, path = []) {
+                for (const [key, value] of Object.entries(obj)) {
+                    const currentPath = [...path, key];
+                    const keyLower = key.toLowerCase();
+
+                    // Check if the key itself is a match
+                    if (keyLower.includes(keywordLower) ||
+                        (typeof value === 'string' && value.toLowerCase().includes(keywordLower))) {
+                        results.push({
+                            path: currentPath,
+                            key: key,
+                            value: typeof value === 'string' ? value : key,
+                            fullPath: currentPath.join(' > '),
+                            relevance: keyLower === keywordLower ? 1.0 :
+                                      keyLower.includes(keywordLower) ? 0.9 : 0.7
+                        });
+                    }
+
+                    // Continue searching if value is an object
+                    if (typeof value === 'object' && value !== null) {
+                        searchObject(value, currentPath);
+                    }
+                }
+            }
+
+            searchObject(expandedKb);
+
+            // Sort by relevance
+            results.sort((a, b) => b.relevance - a.relevance);
+            return results;
+        }
+
+        // Search for keywords in dream text
+        function findKeywordsInDream(dreamText) {
+            const dreamTextLower = dreamText.toLowerCase();
+            const matchedKeywords = [];
+            const matchedInterpretations = [];
+
+            // First check basic interpretations (flat structure)
+            for (const keyword in interpretationsKb) {
+                const keywordLower = keyword.toLowerCase();
+                if (dreamTextLower.includes(keywordLower)) {
+                    matchedKeywords.push(keyword);
+                    matchedInterpretations.push({
+                        keyword: keyword,
+                        interpretation: interpretationsKb[keyword],
+                        relevance: 1.0,
+                        source: 'basic'
+                    });
+                }
+            }
+
+            // Split text into words
+            const words = dreamTextLower.split(/\s+/);
+
+            // Filter for significant words (longer than 2 characters)
+            const significantWords = words.filter(word => word.length >= 2);
+
+            // Search for significant words and phrases
+            for (const word of significantWords) {
+                const expandedResults = searchExpandedKb(word);
+                for (const result of expandedResults) {
+                    // Avoid duplicates
+                    if (!matchedInterpretations.some(item =>
+                        item.keyword === result.key &&
+                        item.interpretation === result.value)) {
+                        matchedKeywords.push(result.key);
+                        matchedInterpretations.push({
+                            keyword: result.key,
+                            interpretation: result.value,
+                            relevance: result.relevance,
+                            category: result.fullPath,
+                            source: 'expanded'
+                        });
+                    }
+                }
+            }
+
+            // Search for common phrases (2-3 words)
+            for (let i = 0; i < words.length - 1; i++) {
+                const phrase2 = words[i] + ' ' + words[i+1];
+                if (phrase2.length > 5) {
+                    const phraseResults = searchExpandedKb(phrase2);
+                    for (const result of phraseResults) {
+                        if (!matchedInterpretations.some(item => item.keyword === result.key)) {
+                            matchedKeywords.push(result.key);
+                            matchedInterpretations.push({
+                                keyword: result.key,
+                                interpretation: result.value,
+                                relevance: result.relevance * 1.2, // Boost for phrases
+                                category: result.fullPath,
+                                source: 'expanded'
+                            });
+                        }
+                    }
+                }
+
+                // 3-word phrases
+                if (i < words.length - 2) {
+                    const phrase3 = words[i] + ' ' + words[i+1] + ' ' + words[i+2];
+                    if (phrase3.length > 8) {
+                        const phraseResults = searchExpandedKb(phrase3);
+                        for (const result of phraseResults) {
+                            if (!matchedInterpretations.some(item => item.keyword === result.key)) {
+                                matchedKeywords.push(result.key);
+                                matchedInterpretations.push({
+                                    keyword: result.key,
+                                    interpretation: result.value,
+                                    relevance: result.relevance * 1.5, // Higher boost for longer phrases
+                                    category: result.fullPath,
+                                    source: 'expanded'
+                                });
+                            }
+                        }
+                    }
+                }
+            }
+
+            // Sort by relevance and limit results
+            matchedInterpretations.sort((a, b) => b.relevance - a.relevance);
+            return {
+                keywords: [...new Set(matchedKeywords)], // Remove duplicates
+                interpretations: matchedInterpretations.slice(0, 8) // Limit to top 8 results
+            };
+        }
+
+        // Context association analysis
+        function analyzeContext(dreamText, matchedKeywords) {
+            const contextualInsights = [];
+            const dreamTextLower = dreamText.toLowerCase();
+
+            // Emotion analysis
+            const emotionPatterns = {
+                positive: ['happy', 'joy', 'excited', 'peaceful', 'calm', 'love'],
+                negative: ['scared', 'fear', 'anxiety', 'sad', 'angry', 'upset', 'stress'],
+                neutral: ['confused', 'wondering', 'thinking']
+            };
+
+            let dominantEmotion = 'neutral';
+            let maxEmotionCount = 0;
+
+            for (const [emotion, words] of Object.entries(emotionPatterns)) {
+                const count = words.filter(word => dreamTextLower.includes(word)).length;
+                if (count > maxEmotionCount) {
+                    maxEmotionCount = count;
+                    dominantEmotion = emotion;
+                }
+            }
+
+            // Association analysis - check combinations of symbols
+            if (matchedKeywords.length >= 2) {
+                // Water + Falling combination
+                if (matchedKeywords.some(k => k.toLowerCase().includes('water')) &&
+                    matchedKeywords.some(k => k.toLowerCase().includes('falling'))) {
+                    contextualInsights.push({
+                        combination: "Water and Falling",
+                        insight: "The combination of water and falling may indicate emotional instability or concerns about losing control. This might reflect challenges you're facing in managing emotional changes."
+                    });
+                }
+
+                // Flying + Chase combination
+                if (matchedKeywords.some(k => k.toLowerCase().includes('fly')) &&
+                    matchedKeywords.some(k => k.toLowerCase().includes('chase'))) {
+                    contextualInsights.push({
+                        combination: "Flying and Being Chased",
+                        insight: "Flying while being chased suggests a tension between seeking freedom and escaping from pressures or responsibilities. Consider what you might be trying to rise above or escape from in your waking life."
+                    });
+                }
+
+                // House + Unknown rooms combination
+                if (matchedKeywords.some(k => k.toLowerCase().includes('house')) &&
+                    (dreamTextLower.includes('room') || dreamTextLower.includes('rooms'))) {
+                    contextualInsights.push({
+                        combination: "House with Unknown Rooms",
+                        insight: "Discovering new rooms in a house often represents unexplored aspects of yourself or untapped potential. This may indicate a period of self-discovery or personal growth."
+                    });
+                }
+
+                // Water + Boat combination
+                if (matchedKeywords.some(k => k.toLowerCase().includes('water')) &&
+                    matchedKeywords.some(k => k.toLowerCase().includes('boat'))) {
+                    contextualInsights.push({
+                        combination: "Water and Boat",
+                        insight: "The combination of water and a boat suggests you're navigating through emotional situations or life transitions. The state of the water and your ability to reach the boat may reflect how you feel about your emotional journey or life direction."
+                    });
+                }
+
+                // Sky + Transformation combination
+                if (matchedKeywords.some(k => k.toLowerCase().includes('sky')) &&
+                    (dreamTextLower.includes('transform') || dreamTextLower.includes('change') || dreamTextLower.includes('turned'))) {
+                    contextualInsights.push({
+                        combination: "Sky Transformation",
+                        insight: "A transforming sky often represents shifting perspectives or awareness. This may indicate you're experiencing a change in how you view your life's possibilities or spiritual outlook."
+                    });
+                }
+
+                // Bird + Shoulder combination
+                if ((matchedKeywords.some(k => k.toLowerCase().includes('bird')) ||
+                     matchedKeywords.some(k => k.toLowerCase().includes('seagull'))) &&
+                    dreamTextLower.includes('shoulder')) {
+                    contextualInsights.push({
+                        combination: "Bird on Shoulder",
+                        insight: "A bird landing on your shoulder suggests a message from your unconscious or intuition trying to communicate with you. The bird's behavior and your reaction to it may provide clues about what aspect of yourself is seeking attention."
+                    });
+                }
+
+                // Anxiety + Receding Water combination
+                if (dreamTextLower.includes('anxious') &&
+                    (matchedKeywords.some(k => k.toLowerCase().includes('receding')) ||
+                     (dreamTextLower.includes('water') && dreamTextLower.includes('receded')))) {
+                    contextualInsights.push({
+                        combination: "Anxiety and Receding Water",
+                        insight: "Feeling anxious as water recedes suggests concerns about missed opportunities or feeling that something desirable is moving beyond your reach. This may reflect current situations where you feel things are slipping away from you."
+                    });
+                }
+            }
+
+            return {
+                dominantEmotion,
+                contextualInsights
+            };
+        }
+
+        // Generate reflection questions
+        function generateReflectionQuestions(dreamText, matchedKeywords) {
+            const questions = [];
+            const dreamTextLower = dreamText.toLowerCase();
+
+            // Emotion exploration questions
+            if (dreamTextLower.includes('fear') || dreamTextLower.includes('scared') ||
+                dreamTextLower.includes('anxiety') || matchedKeywords.includes('chase') ||
+                matchedKeywords.includes('falling')) {
+                questions.push("How might the fear or anxiety in your dream relate to situations in your recent life?");
+            }
+
+            // Character relationship questions
+            if (dreamTextLower.includes('friend') || dreamTextLower.includes('family') ||
+                dreamTextLower.includes('mother') || dreamTextLower.includes('father') ||
+                dreamTextLower.includes('partner')) {
+                questions.push("What aspects or qualities of yourself might the characters in your dream represent?");
+            }
+
+            // Symbol meaning questions
+            if (matchedKeywords.length > 0) {
+                const randomKeyword = matchedKeywords[Math.floor(Math.random() * matchedKeywords.length)];
+                questions.push(`What personal significance or associations does the "${randomKeyword}" in your dream have for you?`);
+            }
+
+            // Behavior pattern questions
+            if (dreamTextLower.includes('try') || dreamTextLower.includes('could not') ||
+                dreamTextLower.includes('failed') || dreamTextLower.includes('struggle')) {
+                questions.push("How is your approach to challenges in the dream similar to or different from your approach in waking life?");
+            }
+
+            // General questions
+            const generalQuestions = [
+                "What feelings did this dream evoke, and how might they connect to your current life situation?",
+                "If this dream were conveying a message, what do you think that message might be?",
+                "What was the most prominent or striking element in your dream, and what might it represent in your life?"
+            ];
+
+            // Ensure at least 3 questions
+            while (questions.length < 3) {
+                const randomQuestion = generalQuestions[Math.floor(Math.random() * generalQuestions.length)];
+                if (!questions.includes(randomQuestion)) {
+                    questions.push(randomQuestion);
+                }
+            }
+
+            return questions.slice(0, 3); // Return max 3 questions
+        }
+
+        // Add psychological perspectives interpretation
+        function getPsychologicalPerspectives(dreamText, matchedKeywords) {
+            const dreamTextLower = dreamText.toLowerCase();
+            const perspectives = [];
+
+            // Freudian perspective
+            if (matchedKeywords.some(k =>
+                ['teeth', 'falling', 'flying', 'naked', 'chase'].some(term => k.includes(term)))) {
+                perspectives.push({
+                    theory: "Freudian Psychoanalysis",
+                    interpretation: "From a Freudian perspective, this dream may reflect unconscious desires or conflicts. The symbols in your dream could be disguised expressions of repressed emotions or wishes."
+                });
+            }
+
+            // Jungian perspective
+            if (matchedKeywords.some(k =>
+                ['water', 'snake', 'circle', 'old', 'wise', 'shadow', 'sky', 'star', 'bird', 'seagull', 'boat', 'transformation'].some(term => k.toLowerCase().includes(term))) ||
+                (dreamTextLower.includes('transform') && dreamTextLower.includes('sky'))) {
+                perspectives.push({
+                    theory: "Jungian Analytical Psychology",
+                    interpretation: "From a Jungian perspective, the elements in your dream may represent archetypes from the collective unconscious. The transforming sky, water, and bird symbolism suggest a connection to the Self archetype and the process of individuation. These symbols might reflect your journey toward greater self-awareness and inner integration."
+                });
+            }
+
+            // Modern cognitive perspective
+            if (dreamTextLower.includes('recent') ||
+                dreamTextLower.includes('yesterday') ||
+                dreamTextLower.includes('week') ||
+                matchedKeywords.some(k => ['exam', 'work', 'study'].some(term => k.includes(term)))) {
+                perspectives.push({
+                    theory: "Modern Cognitive Psychology",
+                    interpretation: "From a cognitive psychology perspective, this dream may be part of your brain's process of organizing and integrating recent memories and emotions. The dream content likely reflects recent events and associated feelings."
+                });
+            }
+
+            // If no specific theory matches, provide a generic psychological perspective
+            if (perspectives.length === 0) {
+                perspectives.push({
+                    theory: "Integrative Psychological Perspective",
+                    interpretation: "From an integrative psychological viewpoint, dreams are a form of unconscious expression that may reflect your inner emotional state, unresolved issues, or directions for personal growth."
+                });
+            }
+
+            return perspectives;
+        }
+
+        function submitDream() {
+            const dreamText = document.getElementById('dreamInput').value;
+            const resultsDiv = document.getElementById('results');
+
+            resultsDiv.className = 'loading';
+            resultsDiv.innerHTML = '<div class="loader"></div><p>Interpreting your dream...</p>';
+
+            if (!dreamText.trim()) {
+                resultsDiv.className = '';
+                resultsDiv.innerHTML = '<div class="error"><i class="fas fa-exclamation-circle"></i>Please enter your dream description!</div>';
+                return;
+            }
+
+            if (!interpretationsKb) {
+                resultsDiv.className = '';
+                resultsDiv.innerHTML = '<div class="error"><i class="fas fa-exclamation-circle"></i>Knowledge base is not available. Cannot interpret dream.</div>';
+                return;
+            }
+
+            setTimeout(() => {
+                try {
+                    // Use the improved keyword finding function
+                    const dreamAnalysis = findKeywordsInDream(dreamText);
+                    const matchedKeywords = dreamAnalysis.keywords;
+                    let matchedInterpretations = dreamAnalysis.interpretations;
+
+                    // Generate general summary first
+                    const dreamTextLower = dreamText.toLowerCase();
+                    const summaryDiv = document.createElement('div');
+                    summaryDiv.className = 'interpretation-card summary';
+
+                    // Create summary content based on language
+                    summaryDiv.innerHTML = `
+                        <h3><i class="fas fa-scroll"></i> Dream Summary</h3>
+                        <p>Based on your dream description, here is a general overview:</p>
+                        <ul>
+                            <li>Your dream appears to be ${dreamTextLower.length > 100 ? 'detailed and complex' : 'brief and focused'}</li>
+                            <li>The narrative suggests ${dreamTextLower.includes('i') || dreamTextLower.includes('me') || dreamTextLower.includes('my') ? 'a personal experience' : 'an observational perspective'}</li>
+                            <li>The emotional tone seems ${
+                                dreamTextLower.includes('happy') || dreamTextLower.includes('joy') || dreamTextLower.includes('excited') ? 'positive' :
+                                dreamTextLower.includes('scared') || dreamTextLower.includes('fear') || dreamTextLower.includes('anxiety') ? 'anxious' :
+                                dreamTextLower.includes('sad') || dreamTextLower.includes('angry') || dreamTextLower.includes('upset') ? 'negative' : 'neutral'
+                            }</li>
+                        </ul>
+                        <p>Found ${matchedKeywords.length} symbols in your dream. Below you'll find specific interpretations:</p>
+                    `;
+
+                    resultsDiv.className = '';
+                    resultsDiv.innerHTML = '';
+
+                    // Add the summary first
+                    resultsDiv.appendChild(summaryDiv);
+
+                    if (matchedInterpretations.length > 0) {
+                        matchedInterpretations.forEach(item => {
+                            const interpDiv = document.createElement('div');
+                            interpDiv.className = 'interpretation-card';
+                            if (item.source === 'expanded') {
+                                interpDiv.className += ' expanded';
+                            }
+
+                            const keywordString = String(item.keyword || "General");
+                            let keywordHTML = keywordString === "General" ? '' :
+                                `<h4><i class="fas fa-key"></i>${keywordString.replace(/</g, "&lt;").replace(/>/g, "&gt;")}</h4>`;
+
+                            // Add category information for expanded results
+                            if (item.category) {
+                                keywordHTML += `<div class="category">${item.category.replace(/</g, "&lt;").replace(/>/g, "&gt;")}</div>`;
+                            }
+
+                            const interpretationString = String(item.interpretation || "");
+                            interpDiv.innerHTML = `${keywordHTML}<p>${interpretationString.replace(/</g, "&lt;").replace(/>/g, "&gt;")}</p>`;
+                            resultsDiv.appendChild(interpDiv);
+                        });
+                    } else {
+                        // No interpretations found message based on language
+                        resultsDiv.innerHTML = `
+                            <div class="interpretation-card">
+                                <h4><i class="fas fa-star"></i>Personal Reflection</h4>
+                                <p>We couldn't find specific symbols in your dream, but dreams are deeply personal. Consider what the elements in your dream mean to you specifically, as your own associations often provide the most meaningful insights.</p>
+                            </div>
+                        `;
+                    }
+
+                    // After displaying basic interpretations:
+                    const psychPerspectives = getPsychologicalPerspectives(dreamText, matchedKeywords);
+
+                    if (psychPerspectives.length > 0) {
+                        const psychDiv = document.createElement('div');
+                        psychDiv.className = 'interpretation-card psychology';
+
+                        let psychHTML = '';
+                        psychHTML = `<h3><i class="fas fa-brain"></i> Psychological Perspectives</h3><div class="perspectives">`;
+
+                        psychPerspectives.forEach(perspective => {
+                            psychHTML += `
+                                <div class="perspective">
+                                    <h4>${perspective.theory}</h4>
+                                    <p>${perspective.interpretation}</p>
+                                </div>
+                            `;
+                        });
+
+                        psychHTML += `</div>`;
+                        psychDiv.innerHTML = psychHTML;
+                        resultsDiv.appendChild(psychDiv);
+                    }
+
+                    // After displaying all interpretations:
+                    const reflectionQuestions = generateReflectionQuestions(dreamText, matchedKeywords);
+
+                    const reflectionDiv = document.createElement('div');
+                    reflectionDiv.className = 'interpretation-card reflection';
+
+                    let reflectionHTML = '';
+                    reflectionHTML = `<h3><i class="fas fa-lightbulb"></i> Reflection Questions</h3><p>Consider these questions to help you explore the personal meaning of your dream:</p><ul>`;
+
+                    reflectionQuestions.forEach(question => {
+                        reflectionHTML += `<li>${question}</li>`;
+                    });
+
+                    reflectionHTML += `</ul>`;
+                    reflectionDiv.innerHTML = reflectionHTML;
+                    resultsDiv.appendChild(reflectionDiv);
+
+                    // Add context analysis when displaying results
+                    const contextAnalysis = analyzeContext(dreamText, matchedKeywords);
+
+                    if (contextAnalysis.contextualInsights.length > 0) {
+                        const contextDiv = document.createElement('div');
+                        contextDiv.className = 'interpretation-card context';
+
+                        let contextHTML = '';
+                        contextHTML = `<h3><i class="fas fa-link"></i> Symbol Relationship Analysis</h3><p>Based on multiple elements in your dream, here's a deeper interpretation:</p><ul>`;
+
+                        contextAnalysis.contextualInsights.forEach(insight => {
+                            contextHTML += `<li><strong>${insight.combination}:</strong> ${insight.insight}</li>`;
+                        });
+
+                        contextHTML += `</ul>`;
+                        contextDiv.innerHTML = contextHTML;
+                        resultsDiv.appendChild(contextDiv);
+                    }
+
+                } catch (error) {
+                    console.error('Error during client-side interpretation:', error);
+                    resultsDiv.className = '';
+                    resultsDiv.innerHTML = `<div class="error"><i class="fas fa-exclamation-circle"></i>Failed to interpret dream: ${error.message}</div>`;
+                }
+            }, 800);
+        }
+
+        window.onload = function() {
+            document.getElementById('dreamInput').focus();
+            loadKnowledgeBases();
+        };
+    </script>
+</body>
+</html>
+
+
+
+
+
+
+
+
+
+
+

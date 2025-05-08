@@ -1,0 +1,96 @@
+{
+  "BasicSymbols": {
+    "NaturalElements": {
+      "Water": {
+        "CalmWater": "Symbolizes the unconscious mind, inner peace",
+        "TurbulentWater": "Represents emotional turmoil, life changes",
+        "DeepWater": "Signifies deep unconscious, unknown fears",
+        "ShallowWater": "Indicates surface consciousness, limited perspective"
+      },
+      "Fire": {
+        "ControlledFire": "Symbolizes creativity, transformative energy",
+        "UncontrolledFire": "Represents destructive emotions, life crisis",
+        "WarmFlame": "Signifies passion, source of vitality",
+        "BurningObjects": "Symbolizes purification, radical change"
+      },
+      "Air/Wind": {
+        "Breeze": "Represents flow of thoughts, subtle changes",
+        "StrongWind/Storm": "Symbolizes major transitions, emotional turbulence",
+        "SuffocationFeeling": "Signifies pressure, restricted expression",
+        "FreeBreathing": "Symbolizes relief, sense of freedom"
+      },
+      "Earth/Ground": {
+        "FertileSoil": "Represents growth potential, stable foundation",
+        "BarrenLand": "Symbolizes resource scarcity, limited opportunities",
+        "GroundCollapsing": "Signifies loss of support, shaken beliefs",
+        "SolidGround": "Symbolizes security, stable support"
+      }
+    },
+    "AnimalSymbols": {
+      "DomesticAnimals": {
+        "Dog": "Symbolizes loyalty, protection, friendship",
+        "Cat": "Represents independence, mystery, intuition",
+        "Horse": "Symbolizes power, freedom, vitality"
+      },
+      "WildAnimals": {
+        "Wolf": "Symbolizes instinct, independence, pack belonging",
+        "Bear": "Represents strength, introspection, protection",
+        "Birds": "Symbolizes freedom, perspective, spiritual aspiration"
+      },
+      "Reptiles": {
+        "Snake": "Represents transformation, wisdom, renewal",
+        "Lizard": "Symbolizes adaptability, primal instincts",
+        "Turtle": "Represents longevity, protection, slow progress"
+      }
+    },
+    "CharacterTypes": {
+      "FamiliarPeople": "Symbolizes aspects of personality, relationship projections",
+      "Strangers": "Represents unknown self, potential possibilities",
+      "Historical/Celebrities": "Symbolizes collective values, exemplary qualities",
+      "AuthorityFigures": "Represents inner authority, superego projections",
+      "Children": "Symbolizes innocent self, vulnerability, new possibilities"
+    }
+  },
+  "SituationsAndActivities": {
+    "ChaseOrBeingChased": "Symbolizes avoiding issues, inner conflict",
+    "Falling": "Represents loss of control, status decline, letting go",
+    "Flying": "Symbolizes transcending limitations, freedom, perspective shift",
+    "HidingOrSeeking": "Represents avoidance and exploration, inner quest",
+    "BeingLost": "Symbolizes life direction, identity confusion",
+    "ExamOrTest": "Represents self-evaluation, social pressure"
+  },
+  "CultureSpecificSymbols": {
+    "WesternCulturalSymbols": {
+      "Cross": "Symbolizes faith, sacrifice, redemption",
+      "Crown": "Represents power, achievement, responsibility",
+      "Apple": "Symbolizes knowledge, temptation, original sin",
+      "Labyrinth": "Represents life journey, confusion, exploration",
+      "BlackCat": "Symbolizes superstition, mystery, bad omen"
+    },
+    "EasternCulturalSymbols": {
+      "Dragon": "Symbolizes power, good fortune, authority",
+      "RedColor": "Represents celebration, good luck, passion",
+      "Bamboo": "Symbolizes resilience, humility, growth",
+      "Moon": "Represents yin energy, cycles, reunion",
+      "Lotus": "Symbolizes purity, enlightenment, rebirth"
+    }
+  },
+  "SpecialDreamTypes": {
+    "LucidDreams": {
+      "Characteristics": "Awareness of dreaming, possible dream control",
+      "PsychologicalSignificance": "Enhanced self-awareness, inner exploration",
+      "InterpretationFeatures": "Combination of symbolism and direct experience"
+    },
+    "RecurringDreams": {
+      "Characteristics": "Same or similar themes appearing repeatedly",
+      "PsychologicalSignificance": "Unresolved issues, emphasis on important information",
+      "InterpretationFeatures": "Focus on persistent themes and subtle changes"
+    },
+    "Nightmares": {
+      "Characteristics": "Strong negative emotions, awakening",
+      "PsychologicalFunction": "Emotional processing, warning function",
+      "CopingStrategies": "Reprocessing, imagery rehearsal"
+    }
+  }
+}
+
