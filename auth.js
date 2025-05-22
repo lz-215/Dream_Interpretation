@@ -283,8 +283,29 @@ function logout() {
     localStorage.removeItem('email');
     localStorage.removeItem('picture');
     
-    // Redirect to home page
-    window.location.href = 'index.html';
+    // 网站的固定域名
+    const siteDomain = 'qhdrenxi.com';
+    
+    // 检查是否是本地环境
+    const isLocalhost = window.location.hostname === 'localhost' || 
+                        window.location.hostname === '127.0.0.1' ||
+                        window.location.hostname.includes('192.168.');
+    
+    // 确定重定向URL
+    let redirectURL;
+    
+    if (isLocalhost) {
+        // 本地环境重定向
+        redirectURL = `${window.location.protocol}//${window.location.host}/index.html`;
+    } else {
+        // 生产环境使用固定域名
+        redirectURL = `https://${siteDomain}`;
+    }
+    
+    console.log("退出登录，重定向到:", redirectURL);
+    
+    // 重定向到首页
+    window.location.href = redirectURL;
 }
 
 // Show error message
@@ -338,7 +359,7 @@ function getRootDomain() {
 // Handle Google login
 function handleGoogleLogin() {
     // 网站的固定域名
-    const siteDomain = 'qhdrenxi.com';
+    const siteDomain = 'qhdrenxi.com/';
     
     // 构建回调URL（确保回到首页）
     const callback = encodeURIComponent(`https://${siteDomain}`);
@@ -395,8 +416,27 @@ function checkGoogleLoginCallback() {
         
         localStorage.setItem(USER_DATA_KEY, JSON.stringify(userData));
         
-        // 清理URL - 直接跳转到首页而不是处理当前URL
-        window.location.href = 'index.html';
+        // 检查是否是本地环境
+        const isLocalhost = window.location.hostname === 'localhost' || 
+                            window.location.hostname === '127.0.0.1' ||
+                            window.location.hostname.includes('192.168.');
+        
+        // 确定重定向URL
+        let redirectURL;
+        
+        if (isLocalhost) {
+            // 本地环境重定向
+            redirectURL = `${window.location.protocol}//${window.location.host}/index.html`;
+        } else {
+            // 生产环境使用固定域名
+            const siteDomain = 'qhdrenxi.com';
+            redirectURL = `https://${siteDomain}`;
+        }
+        
+        console.log("登录成功，重定向到:", redirectURL);
+        
+        // 清理URL - 直接跳转到首页
+        window.location.href = redirectURL;
     }
 }
 
