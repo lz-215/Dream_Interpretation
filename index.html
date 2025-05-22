@@ -101,7 +101,10 @@
         
         // Dream history storage
         const DREAM_HISTORY_KEY = 'dream_history';
-
+        // User trial count storage
+        const DREAM_TRIAL_COUNT_KEY = 'dream_trial_count';
+        const TRIAL_TIMESTAMP_KEY = 'dream_trial_timestamp';
+        
         // Asynchronously load knowledge bases
         async function loadKnowledgeBases() {
             try {
@@ -557,17 +560,17 @@
                 const formData = new FormData();
                 const google_id = localStorage.getItem('google_id');
                 formData.append('google_id', google_id || '');
-                formData.append('model_id', '4');  // 使用文本解释模型
+                formData.append('model_id', '4');  // Using text interpretation model
                 
-                const content = `请解读以下梦境内容：${dreamText}`;
+                const content = `Please interpret the following dream content: ${dreamText}`;
                 formData.append('content', content);
                 
-                // 显示加载状态
+                // Show loading state
                 const resultsDiv = document.getElementById('results');
                 resultsDiv.className = 'loading';
-                resultsDiv.innerHTML = '<div class="loader"></div><p>正在解读您的梦境...</p>';
+                resultsDiv.innerHTML = '<div class="loader"></div><p>Interpreting your dream...</p>';
         
-                // 发送请求到AI接口
+                // Send request to AI API
                 const response = await fetch('https://aa.jstang.cn/api/ai/call', {
                     method: 'POST',
                     body: formData,
@@ -579,9 +582,9 @@
                 }
         
                 const data = await response.json();
-                console.log('AI解读结果:', data);
+                console.log('AI interpretation result:', data);
         
-                // 处理AI返回的解读结果
+                // Process AI response
                 if (data && data.data) {
                     // Cache the interpretation
                     let interpretations = [];
@@ -606,18 +609,18 @@
                     
                     return data.data;
                 } else {
-                    throw new Error(`AI未返回有效的解读结果: ${JSON.stringify(data)}`);
+                    throw new Error(`AI did not return valid interpretation results: ${JSON.stringify(data)}`);
                 }
         
             } catch (error) {
-                console.error('获取AI解读失败:', error);
+                console.error('Failed to get AI interpretation:', error);
                 throw error;
             }
         }
 
         // Submit dream for interpretation
         function submitDream() {
-            console.log('submitDream 函数被调用');
+            console.log('submitDream function called');
 
             const dreamText = document.getElementById('dreamInput').value;
             const resultsDiv = document.getElementById('results');
@@ -628,30 +631,55 @@
                 return;
             }
 
-            // 显示加载状态
+            // Check trial count if user is not logged in
+            if (!isLoggedIn()) {
+                const trialCount = getTrialCount();
+                
+                if (trialCount >= 20) {
+                    // Show login prompt when trial count exceeds 20
+                    resultsDiv.className = '';
+                    resultsDiv.innerHTML = `
+                        <div class="login-prompt">
+                            <i class="fas fa-lock"></i>
+                            <h3>Free Trial Limit Reached</h3>
+                            <p>You've used all your free interpretations (20). Login to enjoy more free interpretations!</p>
+                            <div class="login-prompt-buttons">
+                                <a href="login.html" class="login-button">Login</a>
+                                <a href="register.html" class="register-button">Sign Up</a>
+                            </div>
+                        </div>
+                    `;
+                    return;
+                }
+                
+                // Increment trial count
+                incrementTrialCount();
+            }
+
+            // Show loading state
             resultsDiv.className = 'loading';
             resultsDiv.innerHTML = '<div class="loader"></div><p>Interpreting your dream...</p>';
 
             setTimeout(async () => {
-                console.log('setTimeout 回调函数被调用');
+                console.log('setTimeout callback function called');
                 try {
-                    // 获取AI解读结果
+                    // Get AI interpretation result
                     const aiInterpretation = await getDreamInterpretation(dreamText);
                     
-                    // 使用现有的关键词分析
+                    // Use existing keyword analysis
                     const dreamAnalysis = findKeywordsInDream(dreamText);
                     const matchedKeywords = dreamAnalysis.keywords;
                     let matchedInterpretations = dreamAnalysis.interpretations;
         
-                    // 创建解读结果卡片
+                    // Create interpretation result card
                     const aiInterpDiv = document.createElement('div');
                     aiInterpDiv.className = 'interpretation-card ai-interpretation';
                     aiInterpDiv.innerHTML = `
-                        <h3><i class="fas fa-robot"></i> AI 梦境解读</h3>
+                        <h3><i class="fas fa-robot"></i> Dream Interpretation</h3>
                         <p>${aiInterpretation}</p>
                     `;
         
-                    // 清空并显示结果
+                    // Clear and display results
                     resultsDiv.className = '';
                     resultsDiv.innerHTML = '';
                     resultsDiv.appendChild(aiInterpDiv);
@@ -662,9 +690,9 @@
                     }
                     
                 } catch (error) {
-                    console.error('解读过程出错:', error);
+                    console.error('Interpretation process error:', error);
                     resultsDiv.className = '';
-                    resultsDiv.innerHTML = `<div class="error"><i class="fas fa-exclamation-circle"></i>梦境解读失败: ${error.message}</div>`;
+                    resultsDiv.innerHTML = `<div class="error"><i class="fas fa-exclamation-circle"></i>Dream interpretation failed: ${error.message}</div>`;
                 }
             }, 800);
         }
@@ -763,7 +791,7 @@
             const aiInterpDiv = document.createElement('div');
             aiInterpDiv.className = 'interpretation-card ai-interpretation';
             aiInterpDiv.innerHTML = `
-                <h3><i class="fas fa-robot"></i> AI 梦境解读</h3>
+                <h3><i class="fas fa-robot"></i> Dream Interpretation</h3>
                 <p>${dream.interpretation}</p>
             `;
             
@@ -785,6 +813,36 @@
             
             // Reload dream history
             loadDreamHistory();
+        }
+
+        // Get trial count from localStorage
+        function getTrialCount() {
+            // Check if trial count should be reset (after 30 days)
+            const timestamp = localStorage.getItem(TRIAL_TIMESTAMP_KEY);
+            const currentTime = new Date().getTime();
+            
+            if (!timestamp || (currentTime - parseInt(timestamp)) > 30 * 24 * 60 * 60 * 1000) {
+                // Reset trial count after 30 days
+                localStorage.setItem(DREAM_TRIAL_COUNT_KEY, '0');
+                localStorage.setItem(TRIAL_TIMESTAMP_KEY, currentTime.toString());
+                return 0;
+            }
+            
+            const count = localStorage.getItem(DREAM_TRIAL_COUNT_KEY);
+            return count ? parseInt(count) : 0;
+        }
+        
+        // Increment trial count
+        function incrementTrialCount() {
+            const currentCount = getTrialCount();
+            localStorage.setItem(DREAM_TRIAL_COUNT_KEY, (currentCount + 1).toString());
+            
+            // Update timestamp if not set
+            if (!localStorage.getItem(TRIAL_TIMESTAMP_KEY)) {
+                localStorage.setItem(TRIAL_TIMESTAMP_KEY, new Date().getTime().toString());
+            }
+            
+            return currentCount + 1;
         }
     </script>
 </body>
