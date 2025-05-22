@@ -17,11 +17,26 @@
     <meta name="keywords" content="dream interpreter, dream interpretation, dream meanings, dream symbols, analyze dreams, understand dreams">
     <link rel="icon" type="image/svg+xml" href="favicon.svg">
     <link rel="alternate icon" href="favicon.ico">
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#E88A9D">
+    <!-- Cache control headers -->
+    <meta http-equiv="Cache-Control" content="max-age=86400">
+    <meta http-equiv="Expires" content="86400">
+    
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="auth.css">
 </head>
 <body>
+    <header class="header">
+        <div class="logo">
+            <i class="fas fa-moon"></i>
+            <span>Dream Interpreter</span>
+        </div>
+        <!-- Auth buttons or user account will be injected here by auth.js -->
+    </header>
+
     <div class="container">
         <h1>Dream Interpreter</h1>
         <div class="dream-form">
@@ -34,24 +49,98 @@
             <i class="fas fa-cloud-moon"></i>
             <p>Your dream interpretation will appear here</p>
         </div>
+        
+        <!-- Dream History section (only visible when logged in) -->
+        <div id="dreamHistory" class="dream-history" style="display: none;">
+            <h2>Your Dream History</h2>
+            <div class="history-list" id="historyList">
+                <!-- Dream history items will be added here -->
+                <p class="empty-history">No saved dreams yet. Your interpreted dreams will appear here.</p>
+            </div>
+        </div>
     </div>
 
     <footer class="footer">
         <p>© <span id="currentYear"></span> Dream Interpreter. All rights reserved. <a href="privacy-policy.html">Privacy Policy</a></p>
         <p><a href="https://beian.miit.gov.cn/" target="_blank" rel="noopener noreferrer">渝ICP备2024032264号-69</a></p>
-        <p>Contact Us: ytsgabcde15#2925.com, replace # with @ to get the email.</p>
+        <p>Contact Us: ytsgabcde15@2925.com</p>
     </footer>
 
+    <script src="auth.js"></script>
     <script>
+        // Register Service Worker for caching
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('/sw.js')
+                    .then(registration => {
+                        console.log('Service Worker registered with scope:', registration.scope);
+                    })
+                    .catch(error => {
+                        console.error('Service Worker registration failed:', error);
+                    });
+            });
+        }
+
+        // Check if app is being launched from installed PWA
+        const isInStandaloneMode = () => 
+            (window.matchMedia('(display-mode: standalone)').matches) || 
+            (window.navigator.standalone) || 
+            document.referrer.includes('android-app://');
+
+        if (isInStandaloneMode()) {
+            console.log('App is running in standalone mode (installed PWA)');
+            // You can add specific behavior for when the app is running as an installed PWA
+        }
+
         // Update copyright year
         document.getElementById('currentYear').textContent = new Date().getFullYear();
 
         // Basic and expanded knowledge bases
         let interpretationsKb = {};
         let expandedKb = {};
+        
+        // Dream history storage
+        const DREAM_HISTORY_KEY = 'dream_history';
 
         // Asynchronously load knowledge bases
         async function loadKnowledgeBases() {
+            try {
+                // Check if cached data exists
+                const cachedKb = localStorage.getItem('cached_kb');
+                const cachedTimestamp = localStorage.getItem('cached_kb_timestamp');
+                const currentTime = new Date().getTime();
+                
+                // Use cached data if it's less than 24 hours old
+                if (cachedKb && cachedTimestamp && (currentTime - parseInt(cachedTimestamp) < 86400000)) {
+                    console.log('Using cached knowledge base');
+                    const parsedCache = JSON.parse(cachedKb);
+                    interpretationsKb = parsedCache.basic || {};
+                    expandedKb = parsedCache.expanded || {};
+                    
+                    // Still load data in background for next visit
+                    setTimeout(() => fetchAndCacheKnowledgeBases(), 2000);
+                    return;
+                }
+                
+                // No valid cache, load from network
+                await fetchAndCacheKnowledgeBases();
+                
+            } catch (error) {
+                console.error('Error in knowledge base loading process:', error);
+                
+                // Try to use cached data even if it's older than 24 hours
+                const cachedKb = localStorage.getItem('cached_kb');
+                if (cachedKb) {
+                    console.log('Using older cached knowledge base as fallback');
+                    const parsedCache = JSON.parse(cachedKb);
+                    interpretationsKb = parsedCache.basic || {};
+                    expandedKb = parsedCache.expanded || {};
+                }
+            }
+        }
+        
+        // Fetch and cache knowledge bases
+        async function fetchAndCacheKnowledgeBases() {
             try {
                 // Load basic knowledge base
                 const basicResponse = await fetch('interpretations.json');
@@ -107,7 +196,14 @@
                     }
                 }
 
-                console.log('Knowledge base loading completed');
+                // Cache the knowledge bases
+                localStorage.setItem('cached_kb', JSON.stringify({
+                    basic: interpretationsKb,
+                    expanded: expandedKb
+                }));
+                localStorage.setItem('cached_kb_timestamp', new Date().getTime().toString());
+                console.log('Knowledge base cached successfully');
+                
             } catch (error) {
                 console.error('Error in knowledge base loading process:', error);
             }
@@ -117,6 +213,7 @@
         window.onload = function() {
             document.getElementById('dreamInput').focus();
             loadKnowledgeBases();
+            loadDreamHistory();
         };
 
         // Deep search expanded knowledge base - improved version
@@ -442,12 +539,88 @@
             return perspectives;
         }
 
+        // Dream interpretation API function
+        async function getDreamInterpretation(dreamText) {
+            try {
+                // Check for cached interpretation
+                const cachedInterpretations = localStorage.getItem('cached_interpretations');
+                if (cachedInterpretations) {
+                    const interpretations = JSON.parse(cachedInterpretations);
+                    // Find exact match (exact same dream text)
+                    const exactMatch = interpretations.find(item => item.dreamText === dreamText);
+                    if (exactMatch) {
+                        console.log('Using cached interpretation');
+                        return exactMatch.interpretation;
+                    }
+                }
+                
+                const formData = new FormData();
+                const google_id = localStorage.getItem('google_id');
+                formData.append('google_id', google_id || '');
+                formData.append('model_id', '4');  // 使用文本解释模型
+                
+                const content = `请解读以下梦境内容：${dreamText}`;
+                formData.append('content', content);
+                
+                // 显示加载状态
+                const resultsDiv = document.getElementById('results');
+                resultsDiv.className = 'loading';
+                resultsDiv.innerHTML = '<div class="loader"></div><p>正在解读您的梦境...</p>';
+        
+                // 发送请求到AI接口
+                const response = await fetch('https://aa.jstang.cn/api/ai/call', {
+                    method: 'POST',
+                    body: formData,
+                });
+        
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    throw new Error(`HTTP error! status: ${response.status}, body: ${errorText}`);
+                }
+        
+                const data = await response.json();
+                console.log('AI解读结果:', data);
+        
+                // 处理AI返回的解读结果
+                if (data && data.data) {
+                    // Cache the interpretation
+                    let interpretations = [];
+                    const cachedData = localStorage.getItem('cached_interpretations');
+                    if (cachedData) {
+                        interpretations = JSON.parse(cachedData);
+                    }
+                    
+                    // Add new interpretation to cache
+                    interpretations.push({
+                        dreamText: dreamText,
+                        interpretation: data.data,
+                        timestamp: new Date().getTime()
+                    });
+                    
+                    // Limit cache size to 50 items
+                    if (interpretations.length > 50) {
+                        interpretations = interpretations.slice(interpretations.length - 50);
+                    }
+                    
+                    localStorage.setItem('cached_interpretations', JSON.stringify(interpretations));
+                    
+                    return data.data;
+                } else {
+                    throw new Error(`AI未返回有效的解读结果: ${JSON.stringify(data)}`);
+                }
+        
+            } catch (error) {
+                console.error('获取AI解读失败:', error);
+                throw error;
+            }
+        }
+
+        // Submit dream for interpretation
         function submitDream() {
+            console.log('submitDream 函数被调用');
+
             const dreamText = document.getElementById('dreamInput').value;
             const resultsDiv = document.getElementById('results');
-
-            resultsDiv.className = 'loading';
-            resultsDiv.innerHTML = '<div class="loader"></div><p>Interpreting your dream...</p>';
 
             if (!dreamText.trim()) {
                 resultsDiv.className = '';
@@ -455,149 +628,164 @@
                 return;
             }
 
-            if (!interpretationsKb) {
-                resultsDiv.className = '';
-                resultsDiv.innerHTML = '<div class="error"><i class="fas fa-exclamation-circle"></i>Knowledge base is not available. Cannot interpret dream.</div>';
-                return;
-            }
+            // 显示加载状态
+            resultsDiv.className = 'loading';
+            resultsDiv.innerHTML = '<div class="loader"></div><p>Interpreting your dream...</p>';
 
-            setTimeout(() => {
+            setTimeout(async () => {
+                console.log('setTimeout 回调函数被调用');
                 try {
-                    // Use the improved keyword finding function
+                    // 获取AI解读结果
+                    const aiInterpretation = await getDreamInterpretation(dreamText);
+                    
+                    // 使用现有的关键词分析
                     const dreamAnalysis = findKeywordsInDream(dreamText);
                     const matchedKeywords = dreamAnalysis.keywords;
                     let matchedInterpretations = dreamAnalysis.interpretations;
-
-                    // Generate general summary first
-                    const dreamTextLower = dreamText.toLowerCase();
-                    const summaryDiv = document.createElement('div');
-                    summaryDiv.className = 'interpretation-card summary';
-
-                    // Create summary content based on language
-                    summaryDiv.innerHTML = `
-                        <h3><i class="fas fa-scroll"></i> Dream Summary</h3>
-                        <p>Based on your dream description, here is a general overview:</p>
-                        <ul>
-                            <li>Your dream appears to be ${dreamTextLower.length > 100 ? 'detailed and complex' : 'brief and focused'}</li>
-                            <li>The narrative suggests ${dreamTextLower.includes('i') || dreamTextLower.includes('me') || dreamTextLower.includes('my') ? 'a personal experience' : 'an observational perspective'}</li>
-                            <li>The emotional tone seems ${
-                                dreamTextLower.includes('happy') || dreamTextLower.includes('joy') || dreamTextLower.includes('excited') ? 'positive' :
-                                dreamTextLower.includes('scared') || dreamTextLower.includes('fear') || dreamTextLower.includes('anxiety') ? 'anxious' :
-                                dreamTextLower.includes('sad') || dreamTextLower.includes('angry') || dreamTextLower.includes('upset') ? 'negative' : 'neutral'
-                            }</li>
-                        </ul>
-                        <p>Found ${matchedKeywords.length} symbols in your dream. Below you'll find specific interpretations:</p>
+        
+                    // 创建解读结果卡片
+                    const aiInterpDiv = document.createElement('div');
+                    aiInterpDiv.className = 'interpretation-card ai-interpretation';
+                    aiInterpDiv.innerHTML = `
+                        <h3><i class="fas fa-robot"></i> AI 梦境解读</h3>
+                        <p>${aiInterpretation}</p>
                     `;
-
+        
+                    // 清空并显示结果
                     resultsDiv.className = '';
                     resultsDiv.innerHTML = '';
-
-                    // Add the summary first
-                    resultsDiv.appendChild(summaryDiv);
-
-                    if (matchedInterpretations.length > 0) {
-                        matchedInterpretations.forEach(item => {
-                            const interpDiv = document.createElement('div');
-                            interpDiv.className = 'interpretation-card';
-                            if (item.source === 'expanded') {
-                                interpDiv.className += ' expanded';
-                            }
-
-                            const keywordString = String(item.keyword || "General");
-                            let keywordHTML = keywordString === "General" ? '' :
-                                `<h4><i class="fas fa-key"></i>${keywordString.replace(/</g, "&lt;").replace(/>/g, "&gt;")}</h4>`;
-
-                            // Add category information for expanded results
-                            if (item.category) {
-                                keywordHTML += `<div class="category">${item.category.replace(/</g, "&lt;").replace(/>/g, "&gt;")}</div>`;
-                            }
-
-                            const interpretationString = String(item.interpretation || "");
-                            interpDiv.innerHTML = `${keywordHTML}<p>${interpretationString.replace(/</g, "&lt;").replace(/>/g, "&gt;")}</p>`;
-                            resultsDiv.appendChild(interpDiv);
-                        });
-                    } else {
-                        // No interpretations found message based on language
-                        resultsDiv.innerHTML = `
-                            <div class="interpretation-card">
-                                <h4><i class="fas fa-star"></i>Personal Reflection</h4>
-                                <p>We couldn't find specific symbols in your dream, but dreams are deeply personal. Consider what the elements in your dream mean to you specifically, as your own associations often provide the most meaningful insights.</p>
-                            </div>
-                        `;
+                    resultsDiv.appendChild(aiInterpDiv);
+                    
+                    // If user is logged in, save dream to history
+                    if (isLoggedIn()) {
+                        saveDreamToHistory(dreamText, aiInterpretation);
                     }
-
-                    // After displaying basic interpretations:
-                    const psychPerspectives = getPsychologicalPerspectives(dreamText, matchedKeywords);
-
-                    if (psychPerspectives.length > 0) {
-                        const psychDiv = document.createElement('div');
-                        psychDiv.className = 'interpretation-card psychology';
-
-                        let psychHTML = '';
-                        psychHTML = `<h3><i class="fas fa-brain"></i> Psychological Perspectives</h3><div class="perspectives">`;
-
-                        psychPerspectives.forEach(perspective => {
-                            psychHTML += `
-                                <div class="perspective">
-                                    <h4>${perspective.theory}</h4>
-                                    <p>${perspective.interpretation}</p>
-                                </div>
-                            `;
-                        });
-
-                        psychHTML += `</div>`;
-                        psychDiv.innerHTML = psychHTML;
-                        resultsDiv.appendChild(psychDiv);
-                    }
-
-                    // After displaying all interpretations:
-                    const reflectionQuestions = generateReflectionQuestions(dreamText, matchedKeywords);
-
-                    const reflectionDiv = document.createElement('div');
-                    reflectionDiv.className = 'interpretation-card reflection';
-
-                    let reflectionHTML = '';
-                    reflectionHTML = `<h3><i class="fas fa-lightbulb"></i> Reflection Questions</h3><p>Consider these questions to help you explore the personal meaning of your dream:</p><ul>`;
-
-                    reflectionQuestions.forEach(question => {
-                        reflectionHTML += `<li>${question}</li>`;
-                    });
-
-                    reflectionHTML += `</ul>`;
-                    reflectionDiv.innerHTML = reflectionHTML;
-                    resultsDiv.appendChild(reflectionDiv);
-
-                    // Add context analysis when displaying results
-                    const contextAnalysis = analyzeContext(dreamText, matchedKeywords);
-
-                    if (contextAnalysis.contextualInsights.length > 0) {
-                        const contextDiv = document.createElement('div');
-                        contextDiv.className = 'interpretation-card context';
-
-                        let contextHTML = '';
-                        contextHTML = `<h3><i class="fas fa-link"></i> Symbol Relationship Analysis</h3><p>Based on multiple elements in your dream, here's a deeper interpretation:</p><ul>`;
-
-                        contextAnalysis.contextualInsights.forEach(insight => {
-                            contextHTML += `<li><strong>${insight.combination}:</strong> ${insight.insight}</li>`;
-                        });
-
-                        contextHTML += `</ul>`;
-                        contextDiv.innerHTML = contextHTML;
-                        resultsDiv.appendChild(contextDiv);
-                    }
-
+                    
                 } catch (error) {
-                    console.error('Error during client-side interpretation:', error);
+                    console.error('解读过程出错:', error);
                     resultsDiv.className = '';
-                    resultsDiv.innerHTML = `<div class="error"><i class="fas fa-exclamation-circle"></i>Failed to interpret dream: ${error.message}</div>`;
+                    resultsDiv.innerHTML = `<div class="error"><i class="fas fa-exclamation-circle"></i>梦境解读失败: ${error.message}</div>`;
                 }
             }, 800);
         }
-
-        window.onload = function() {
-            document.getElementById('dreamInput').focus();
-            loadKnowledgeBases();
-        };
+        
+        // Dream history functions
+        function loadDreamHistory() {
+            if (!isLoggedIn()) {
+                document.getElementById('dreamHistory').style.display = 'none';
+                return;
+            }
+            
+            // Show dream history section
+            document.getElementById('dreamHistory').style.display = 'block';
+            
+            // Get dream history from localStorage
+            const history = getDreamHistory();
+            const historyList = document.getElementById('historyList');
+            
+            // Clear existing content
+            historyList.innerHTML = '';
+            
+            if (history.length === 0) {
+                historyList.innerHTML = '<p class="empty-history">No saved dreams yet. Your interpreted dreams will appear here.</p>';
+                return;
+            }
+            
+            // Display dream history
+            history.forEach((dream, index) => {
+                const dreamItem = document.createElement('div');
+                dreamItem.className = 'history-item';
+                dreamItem.innerHTML = `
+                    <div class="history-dream">
+                        <h3>Dream ${index + 1}</h3>
+                        <p>${dream.dreamText.substring(0, 100)}${dream.dreamText.length > 100 ? '...' : ''}</p>
+                        <div class="history-date">${new Date(dream.date).toLocaleDateString()}</div>
+                    </div>
+                    <div class="history-actions">
+                        <button class="view-btn" data-index="${index}">View</button>
+                        <button class="delete-btn" data-index="${index}">Delete</button>
+                    </div>
+                `;
+                historyList.appendChild(dreamItem);
+            });
+            
+            // Add event listeners to buttons
+            document.querySelectorAll('.view-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const index = this.getAttribute('data-index');
+                    viewDreamFromHistory(index);
+                });
+            });
+            
+            document.querySelectorAll('.delete-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const index = this.getAttribute('data-index');
+                    deleteDreamFromHistory(index);
+                });
+            });
+        }
+        
+        function getDreamHistory() {
+            const history = localStorage.getItem(DREAM_HISTORY_KEY);
+            return history ? JSON.parse(history) : [];
+        }
+        
+        function saveDreamToHistory(dreamText, interpretation) {
+            const history = getDreamHistory();
+            
+            // Add new dream to history
+            history.unshift({
+                dreamText,
+                interpretation,
+                date: new Date().toISOString()
+            });
+            
+            // Limit history size
+            const limitedHistory = history.slice(0, 10);
+            
+            // Save to localStorage
+            localStorage.setItem(DREAM_HISTORY_KEY, JSON.stringify(limitedHistory));
+            
+            // Reload dream history
+            loadDreamHistory();
+        }
+        
+        function viewDreamFromHistory(index) {
+            const history = getDreamHistory();
+            const dream = history[index];
+            
+            if (!dream) return;
+            
+            // Display dream in results
+            const resultsDiv = document.getElementById('results');
+            resultsDiv.className = '';
+            
+            const aiInterpDiv = document.createElement('div');
+            aiInterpDiv.className = 'interpretation-card ai-interpretation';
+            aiInterpDiv.innerHTML = `
+                <h3><i class="fas fa-robot"></i> AI 梦境解读</h3>
+                <p>${dream.interpretation}</p>
+            `;
+            
+            resultsDiv.innerHTML = '';
+            resultsDiv.appendChild(aiInterpDiv);
+            
+            // Set dream text in input
+            document.getElementById('dreamInput').value = dream.dreamText;
+        }
+        
+        function deleteDreamFromHistory(index) {
+            const history = getDreamHistory();
+            
+            // Remove dream from history
+            history.splice(index, 1);
+            
+            // Save to localStorage
+            localStorage.setItem(DREAM_HISTORY_KEY, JSON.stringify(history));
+            
+            // Reload dream history
+            loadDreamHistory();
+        }
     </script>
 </body>
 </html>

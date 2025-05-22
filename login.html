@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <!-- Google tag (gtag.js) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-LSL1FY3NYY"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('js', new Date());
+
+        gtag('config', 'G-LSL1FY3NYY');
+    </script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - Dream Interpretation</title>
+    <meta name="description" content="Log in to your Dream Interpreter account to save and track your dream interpretations.">
+    <link rel="icon" type="image/svg+xml" href="favicon.svg">
+    <link rel="alternate icon" href="favicon.ico">
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#E88A9D">
+    <!-- Cache control headers -->
+    <meta http-equiv="Cache-Control" content="max-age=86400">
+    <meta http-equiv="Expires" content="86400">
+    
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="auth.css">
+</head>
+<body>
+    <div class="container auth-container">
+        <h1>Login to Dream Interpreter</h1>
+        <div id="errorMessage" class="error-message" style="display: none;"></div>
+        
+        <form id="loginForm" class="auth-form">
+            <div class="input-group">
+                <label for="email">Email</label>
+                <input type="email" id="email" name="email" required placeholder="Enter your email">
+            </div>
+            <div class="input-group">
+                <label for="password">Password</label>
+                <input type="password" id="password" name="password" required placeholder="Enter your password">
+                <div class="password-toggle">
+                    <i class="far fa-eye" id="togglePassword"></i>
+                </div>
+            </div>
+            <div class="remember-forgot">
+                <div class="remember-me">
+                    <input type="checkbox" id="rememberMe">
+                    <label for="rememberMe">Remember me</label>
+                </div>
+                <a href="#" class="forgot-password">Forgot Password?</a>
+            </div>
+            <button type="submit" class="auth-button">Login</button>
+        </form>
+        
+        <div class="auth-divider">
+            <span>or</span>
+        </div>
+        
+        <div class="social-login">
+            <button class="social-button google" id="googleLoginBtn">
+                <i class="fab fa-google"></i>
+                Continue with Google
+            </button>
+        </div>
+        
+        <div class="auth-redirect">
+            <p>Don't have an account? <a href="register.html">Sign up</a></p>
+        </div>
+        
+        <div class="back-link">
+            <a href="index.html"><i class="fas fa-arrow-left"></i> Back to Home</a>
+        </div>
+    </div>
+
+    <footer class="footer">
+        <p>© <span id="currentYear"></span> Dream Interpreter. All rights reserved. <a href="privacy-policy.html">Privacy Policy</a></p>
+        <p><a href="https://beian.miit.gov.cn/" target="_blank" rel="noopener noreferrer">渝ICP备2024032264号-69</a></p>
+        <p>Contact Us: ytsgabcde15@2925.com</p>
+    </footer>
+
+    <script src="auth.js"></script>
+    <script>
+        // Register Service Worker for caching
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('/sw.js')
+                    .then(registration => {
+                        console.log('Service Worker registered with scope:', registration.scope);
+                    })
+                    .catch(error => {
+                        console.error('Service Worker registration failed:', error);
+                    });
+            });
+        }
+        
+        // Update copyright year
+        document.getElementById('currentYear').textContent = new Date().getFullYear();
+        
+        // Toggle password visibility
+        document.getElementById('togglePassword').addEventListener('click', function() {
+            const passwordInput = document.getElementById('password');
+            const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
+            passwordInput.setAttribute('type', type);
+            this.classList.toggle('fa-eye');
+            this.classList.toggle('fa-eye-slash');
+        });
+        
+        // Form submission
+        document.getElementById('loginForm').addEventListener('submit', function(event) {
+            event.preventDefault();
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            const rememberMe = document.getElementById('rememberMe').checked;
+            
+            login(email, password, rememberMe);
+        });
+        
+        // Google login button
+        document.getElementById('googleLoginBtn').addEventListener('click', function(e) {
+            e.preventDefault();
+            handleGoogleLogin();
+        });
+    </script>
+</body>
+</html> 
