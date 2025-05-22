@@ -341,7 +341,7 @@ function handleGoogleLogin() {
     const siteDomain = 'qhdrenxi.com';
     
     // 构建回调URL（确保回到首页）
-    const callback = encodeURIComponent(`https://${siteDomain}/index.html`);
+    const callback = encodeURIComponent(`https://${siteDomain}`);
     
     // 检查是否是本地环境
     const isLocalhost = window.location.hostname === 'localhost' || 
