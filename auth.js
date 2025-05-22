@@ -96,7 +96,6 @@ function initAuthState() {
         const authButtonsHTML = `
             <div class="header-buttons">
                 <a href="login.html" class="header-button login-button">Login</a>
-                <a href="register.html" class="header-button register-button">Sign Up</a>
             </div>
         `;
         
