@@ -308,12 +308,13 @@
 .header-buttons {
     display: flex;
     gap: 15px;
+    margin-left: auto;
 }
 
 .header-button {
-    padding: 10px 20px;
-    border-radius: 20px;
-    font-size: 14px;
+    padding: 8px 24px;
+    border-radius: 30px;
+    font-size: 16px;
     font-weight: 500;
     text-decoration: none;
     transition: var(--transition);
@@ -321,7 +322,7 @@
 
 .login-button {
     color: var(--primary);
-    border: 2px solid var(--primary);
+    border: 1px solid var(--primary);
     background-color: transparent;
 }
 
@@ -332,7 +333,7 @@
 .register-button {
     color: var(--white);
     background-color: var(--primary);
-    border: 2px solid var(--primary);
+    border: 1px solid var(--primary);
 }
 
 .register-button:hover {
